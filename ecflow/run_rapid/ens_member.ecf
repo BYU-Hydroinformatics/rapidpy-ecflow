@@ -1,0 +1,3 @@
+%include <head.h>
+/usr/bin/python3.6 %PYSCRIPT% %ECF_FILES% %JOB_INDEX%
+%include <tail.h>

@@ -1,0 +1,3 @@
+%include <head.h>
+/usr/bin/python3.6 %PYSCRIPT% %IO_LOCATION% %RUNOFF_LOCATION% %ECF_FILES%
+%include <tail.h>

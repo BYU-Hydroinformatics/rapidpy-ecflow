@@ -1,0 +1,170 @@
+# 4.12.0
+suite run_rapid
+  edit ECF_INCLUDE '/home/michael/host_share/rapid_run/ecflow'
+  edit ECF_FILES '/home/michael/host_share/rapid_run/ecflow/run_rapid'
+  edit ECF_HOME '/home/michael/host_share/rapid_run/ecflow'
+  task prep_task
+    edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow/iprep_ecf.py'
+    edit IO_LOCATION '/home/michael/host_share/rapid-io_init'
+    edit RUNOFF_LOCATION '/home/michael/host_share/ecmwf'
+  family ensemble_family
+    trigger prep_task == complete
+    edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow/run_ecflow.py'
+    task ens_member_52
+      edit JOB_INDEX '0'
+    task ens_member_51
+      trigger ens_member_52 == complete
+      edit JOB_INDEX '1'
+    task ens_member_50
+      trigger ens_member_51 == complete
+      edit JOB_INDEX '2'
+    task ens_member_49
+      trigger ens_member_50 == complete
+      edit JOB_INDEX '3'
+    task ens_member_48
+      trigger ens_member_49 == complete
+      edit JOB_INDEX '4'
+    task ens_member_47
+      trigger ens_member_48 == complete
+      edit JOB_INDEX '5'
+    task ens_member_46
+      trigger ens_member_47 == complete
+      edit JOB_INDEX '6'
+    task ens_member_45
+      trigger ens_member_46 == complete
+      edit JOB_INDEX '7'
+    task ens_member_44
+      trigger ens_member_45 == complete
+      edit JOB_INDEX '8'
+    task ens_member_43
+      trigger ens_member_44 == complete
+      edit JOB_INDEX '9'
+    task ens_member_42
+      trigger ens_member_43 == complete
+      edit JOB_INDEX '10'
+    task ens_member_41
+      trigger ens_member_42 == complete
+      edit JOB_INDEX '11'
+    task ens_member_40
+      trigger ens_member_41 == complete
+      edit JOB_INDEX '12'
+    task ens_member_39
+      trigger ens_member_40 == complete
+      edit JOB_INDEX '13'
+    task ens_member_38
+      trigger ens_member_39 == complete
+      edit JOB_INDEX '14'
+    task ens_member_37
+      trigger ens_member_38 == complete
+      edit JOB_INDEX '15'
+    task ens_member_36
+      trigger ens_member_37 == complete
+      edit JOB_INDEX '16'
+    task ens_member_35
+      trigger ens_member_36 == complete
+      edit JOB_INDEX '17'
+    task ens_member_34
+      trigger ens_member_35 == complete
+      edit JOB_INDEX '18'
+    task ens_member_33
+      trigger ens_member_34 == complete
+      edit JOB_INDEX '19'
+    task ens_member_32
+      trigger ens_member_33 == complete
+      edit JOB_INDEX '20'
+    task ens_member_31
+      trigger ens_member_32 == complete
+      edit JOB_INDEX '21'
+    task ens_member_30
+      trigger ens_member_31 == complete
+      edit JOB_INDEX '22'
+    task ens_member_29
+      trigger ens_member_30 == complete
+      edit JOB_INDEX '23'
+    task ens_member_28
+      trigger ens_member_29 == complete
+      edit JOB_INDEX '24'
+    task ens_member_27
+      trigger ens_member_28 == complete
+      edit JOB_INDEX '25'
+    task ens_member_26
+      trigger ens_member_27 == complete
+      edit JOB_INDEX '26'
+    task ens_member_25
+      trigger ens_member_26 == complete
+      edit JOB_INDEX '27'
+    task ens_member_24
+      trigger ens_member_25 == complete
+      edit JOB_INDEX '28'
+    task ens_member_23
+      trigger ens_member_24 == complete
+      edit JOB_INDEX '29'
+    task ens_member_22
+      trigger ens_member_23 == complete
+      edit JOB_INDEX '30'
+    task ens_member_21
+      trigger ens_member_22 == complete
+      edit JOB_INDEX '31'
+    task ens_member_20
+      trigger ens_member_21 == complete
+      edit JOB_INDEX '32'
+    task ens_member_19
+      trigger ens_member_20 == complete
+      edit JOB_INDEX '33'
+    task ens_member_18
+      trigger ens_member_19 == complete
+      edit JOB_INDEX '34'
+    task ens_member_17
+      trigger ens_member_18 == complete
+      edit JOB_INDEX '35'
+    task ens_member_16
+      trigger ens_member_17 == complete
+      edit JOB_INDEX '36'
+    task ens_member_15
+      trigger ens_member_16 == complete
+      edit JOB_INDEX '37'
+    task ens_member_14
+      trigger ens_member_15 == complete
+      edit JOB_INDEX '38'
+    task ens_member_13
+      trigger ens_member_14 == complete
+      edit JOB_INDEX '39'
+    task ens_member_12
+      trigger ens_member_13 == complete
+      edit JOB_INDEX '40'
+    task ens_member_11
+      trigger ens_member_12 == complete
+      edit JOB_INDEX '41'
+    task ens_member_10
+      trigger ens_member_11 == complete
+      edit JOB_INDEX '42'
+    task ens_member_9
+      trigger ens_member_10 == complete
+      edit JOB_INDEX '43'
+    task ens_member_8
+      trigger ens_member_9 == complete
+      edit JOB_INDEX '44'
+    task ens_member_7
+      trigger ens_member_8 == complete
+      edit JOB_INDEX '45'
+    task ens_member_6
+      trigger ens_member_7 == complete
+      edit JOB_INDEX '46'
+    task ens_member_5
+      trigger ens_member_6 == complete
+      edit JOB_INDEX '47'
+    task ens_member_4
+      trigger ens_member_5 == complete
+      edit JOB_INDEX '48'
+    task ens_member_3
+      trigger ens_member_4 == complete
+      edit JOB_INDEX '49'
+    task ens_member_2
+      trigger ens_member_3 == complete
+      edit JOB_INDEX '50'
+    task ens_member_1
+      trigger ens_member_2 == complete
+      edit JOB_INDEX '51'
+  endfamily
+endsuite
+# enddef
