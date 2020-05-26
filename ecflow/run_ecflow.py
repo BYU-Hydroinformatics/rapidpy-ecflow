@@ -10,8 +10,7 @@ import sys
 import os
 from shutil import move, rmtree
 
-from spt_compute.imports.ecmwf_rapid_multiprocess_worker import \
-ecmwf_rapid_multiprocess_worker
+from spt_compute.imports.ecmwf_rapid_multiprocess_worker import ecmwf_rapid_multiprocess_worker
 
 
 class CaptureStdOutToLog(object):
@@ -34,7 +33,7 @@ class CaptureStdOutToLog(object):
         sys.stderr = self._stderr
         
         
-with open(os.path.join(str(sys.argv[1]), 'ecf_out', 'test.txt'), 'r') as f:
+with open(os.path.join(str(sys.argv[1]), 'ecf_out', 'rapid_run.txt'), 'r') as f:
     lines = f.readlines()
     params = lines[int(sys.argv[2])].split(',')
     
@@ -64,19 +63,20 @@ with open(os.path.join(str(sys.argv[1]), 'ecf_out', 'test.txt'), 'r') as f:
             pass
         
         ecmwf_rapid_multiprocess_worker(
-                execute_directory,
-                rapid_input_directory,
-                ecmwf_forecast,
-                forecast_date_timestep,
-                watershed,
-                subbasin,
-                rapid_executable_location,
-                initialize_flows,
-                )
+            execute_directory,
+            rapid_input_directory,
+            ecmwf_forecast,
+            forecast_date_timestep,
+            watershed,
+            subbasin,
+            rapid_executable_location,
+            initialize_flows,
+        )
         
-        node_rapid_outflow_file = os.path.join(execute_directory,
-                                               os.path.basename(master_rapid_outflow_file))
+        node_rapid_outflow_file = os.path.join(
+            execute_directory,
+            os.path.basename(master_rapid_outflow_file)
+        )
         
         move(node_rapid_outflow_file, master_rapid_outflow_file)
         rmtree(execute_directory)
-    

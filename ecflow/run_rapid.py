@@ -3,9 +3,10 @@ import os
 from ecflow import Defs, Family, Task
 
 
-for i in reversed(range(1,53)):
+for i in reversed(range(1, 53)):
     src = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'run_rapid', 'ens_member.ecf')
-    dest = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'run_rapid', 'ensemble_family', f'ens_member_{i}.ecf')
+    dest = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'run_rapid', 'ensemble_family',
+                        f'ens_member_{i}.ecf')
     if not os.path.exists(dest): 
         os.symlink(src, dest)
 
@@ -13,8 +14,12 @@ for i in reversed(range(1,53)):
 def create_ensemble_family():
     ensemble_family = Family("ensemble_family" ).add_trigger("prep_task == complete")
     ensemble_family.add_variable("PYSCRIPT", os.path.join(home, 'run_ecflow.py'))
-    ensemble_family += [ Task(f"ens_member_52").add_variable("JOB_INDEX", 0) ]    
-    ensemble_family += [ Task(f"ens_member_{i}").add_variable("JOB_INDEX", 52-i).add_trigger(f"ens_member_{i+1} == complete") for i in reversed(range(1,52)) ]
+    ensemble_family += [Task(f"ens_member_52").add_variable("JOB_INDEX", 0)]
+    ensemble_family += [
+        Task(f"ens_member_{j}")
+        .add_variable("JOB_INDEX", 52 - j)
+        .add_trigger(f"ens_member_{j + 1} == complete") for j in reversed(range(1, 52))
+    ]
     return ensemble_family
 
 

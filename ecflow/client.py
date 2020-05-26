@@ -5,7 +5,6 @@ try:
     ci = ecflow.Client("localhost:2500")
     ci.ping() 
 
-
 except RuntimeError as e:
     print("ping failed: ", str(e))
 
@@ -15,7 +14,7 @@ try:
 
     ci.sync_local()   # get the defs from the server, and place on ci
     defs = ci.get_defs() # retrieve the defs from ci
-    if defs == None:
+    if defs is None:
         print("No definition in server, loading defs from disk")
         ci.load("run_rapid.def")
 

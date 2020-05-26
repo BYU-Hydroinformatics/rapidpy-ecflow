@@ -73,7 +73,7 @@ def ecmwf_rapid_process(rapid_io_files_location="",
                                             '*.runoff.%s*nc' % region))
         
         # make the largest files first
-        ecmwf_forecasts.sort(key=lambda x: int(os.path.basename(x).split('.')[0]), reverse=True) #key=os.path.getsize, 
+        ecmwf_forecasts.sort(key=lambda x: int(os.path.basename(x).split('.')[0]), reverse=True)  # key=os.path.getsize
         forecast_date_timestep = get_date_timestep_from_forecast_folder(
                 ecmwf_folder)
     
@@ -137,18 +137,20 @@ def ecmwf_rapid_process(rapid_io_files_location="",
         master_job_list += rapid_watershed_jobs[rapid_input_directory]['jobs']
     
 #    print(master_job_list)
-    with open(os.path.join(str(sys.argv[3]), 'ecf_out', 'test.txt'), 'w') as f:
+    with open(os.path.join(str(sys.argv[3]), 'ecf_out', 'rapid_run.txt'), 'w') as f:
         for line in master_job_list:
             formatted_line = ','.join(map(str, line))
             f.write(f"{formatted_line}\n")
     return master_job_list
 
-#------------------------------------------------------------------------------
-#main process
-#------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# main process
+# ------------------------------------------------------------------------------
 if __name__ == "__main__":
-    ecmwf_rapid_process(rapid_io_files_location=str(sys.argv[1]),
-            ecmwf_forecast_location=str(sys.argv[2]),
-            region="",
-            date_string="*.00"
+    ecmwf_rapid_process(
+        rapid_io_files_location=str(sys.argv[1]),
+        ecmwf_forecast_location=str(sys.argv[2]),
+        region="",
+        date_string="*.00"
     )
