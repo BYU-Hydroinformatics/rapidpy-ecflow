@@ -10,6 +10,9 @@ suite run_rapid
   family ensemble_family
     trigger prep_task == complete
     edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow/run_ecflow.py'
+    edit RAPID_EXEC '/home/michael/rapid/run/rapid'
+    edit EXEC_DIR '/home/michael/execute'
+    edit SUBPROCESS_DIR '/home/michael/subprocess_logs'
     task ens_member_52
       edit JOB_INDEX '0'
     task ens_member_51
@@ -166,5 +169,11 @@ suite run_rapid
       trigger ens_member_2 == complete
       edit JOB_INDEX '51'
   endfamily
+  task plain_table_task
+    trigger ensemble_family == complete
+    edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow/spt_extract_plain_table.py'
+    edit OUT_LOCATION '/home/michael/host_share/rapid-io_init/output'
+    edit LOG_FILE '/home/michael/host_share/rapid_run/ecflow/run_rapid/ecf_out/plain_table.log'
+    edit NCES_EXEC '/home/michael/miniconda3/envs/ecflow/bin/nces'
 endsuite
 # enddef

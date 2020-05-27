@@ -12,8 +12,11 @@ for i in reversed(range(1, 53)):
 
 
 def create_ensemble_family():
-    ensemble_family = Family("ensemble_family" ).add_trigger("prep_task == complete")
+    ensemble_family = Family("ensemble_family").add_trigger("prep_task == complete")
     ensemble_family.add_variable("PYSCRIPT", os.path.join(home, 'run_ecflow.py'))
+    ensemble_family.add_variable("RAPID_EXEC", '/home/michael/rapid/run/rapid')
+    ensemble_family.add_variable("EXEC_DIR", '/home/michael/execute')
+    ensemble_family.add_variable("SUBPROCESS_DIR", '/home/michael/subprocess_logs')
     ensemble_family += [Task(f"ens_member_52").add_variable("JOB_INDEX", 0)]
     ensemble_family += [
         Task(f"ens_member_{j}")
@@ -38,7 +41,14 @@ prep_task.add_variable("IO_LOCATION", "/home/michael/host_share/rapid-io_init")
 prep_task.add_variable("RUNOFF_LOCATION", "/home/michael/host_share/ecmwf")
 
 suite += create_ensemble_family()
-            
+
+plain_table_task = suite.add_task('plain_table_task')
+plain_table_task.add_trigger("ensemble_family == complete")
+plain_table_task.add_variable("PYSCRIPT", os.path.join(home, 'spt_extract_plain_table.py'))
+plain_table_task.add_variable("OUT_LOCATION", "/home/michael/host_share/rapid-io_init/output")
+plain_table_task.add_variable("LOG_FILE", os.path.join(home, 'run_rapid/ecf_out/plain_table.log'))
+plain_table_task.add_variable("NCES_EXEC", "/home/michael/miniconda3/envs/ecflow/bin/nces")
+
 print(defs)
 
 print("check trigger expressions")

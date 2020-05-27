@@ -3,7 +3,7 @@
 """
 Created on Mon Jan 28 11:43:42 2019
 
-@author: michael
+@author: Michael Souffront
 """
 
 import sys
@@ -41,13 +41,13 @@ with open(os.path.join(str(sys.argv[1]), 'ecf_out', 'rapid_run.txt'), 'r') as f:
     forecast_date_timestep = params[1]
     watershed = params[2]
     subbasin = params[3]
-    rapid_executable_location = '/home/michael/rapid/run/rapid'
+    rapid_executable_location = str(sys.argv[3])
     initialize_flows = params[4]
     job_name = params[5]
     master_rapid_outflow_file = params[6]
     rapid_input_directory = params[7]
-    mp_execute_directory = '/home/michael/execute'
-    subprocess_forecast_log_dir = '/home/michael/subprocess_logs'
+    mp_execute_directory = str(sys.argv[4])
+    subprocess_forecast_log_dir = str(sys.argv[5])
     watershed_job_index = int(params[8].replace('\n', ''))
 
     with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):

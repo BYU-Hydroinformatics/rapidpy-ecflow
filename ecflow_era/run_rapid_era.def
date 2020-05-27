@@ -1,0 +1,12 @@
+# 4.12.0
+suite run_rapid_era
+  edit ECF_INCLUDE '/home/michael/host_share/rapid_run/ecflow_era'
+  edit ECF_FILES '/home/michael/host_share/rapid_run/ecflow_era/run_rapid_era'
+  edit ECF_HOME '/home/michael/host_share/rapid_run/ecflow_era'
+  task era_task
+    edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow_era/run_lsm.py'
+    edit RAPID_EXEC '/home/michael/rapid/run/rapid'
+    edit IO_LOCATION '/home/michael/host_share/rapid-io_init'
+    edit ERA_LOCATION '/home/michael/host_share/era_data'
+endsuite
+# enddef
