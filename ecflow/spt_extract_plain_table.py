@@ -43,13 +43,19 @@ def extract_summary_table(workspace):
     file_name = 'summary_table_{0}_{1}.csv'.format(full_name, date_string)
 
     # creating pandas dataframe with return periods
-    d = {}
-    return_periods_path = os.path.join(os.path.split(workspace)[0], '{0}-return_periods.csv'.format(full_name))
-    with open(return_periods_path, 'r') as f:
-        lines = f.readlines()
-        lines.pop(0)
-        for line in lines:
-            d[line.split(',')[0]] = line.split(',')[1:4]
+    rp_path = os.path.join(os.path.split(workspace)[0], 'return_periods_erai_t511_24hr_20100101to20141231.nc')
+    rp_ncfile = nc.Dataset(rp_path, 'r')
+
+    # extract values
+    rp_comid = rp_ncfile.variables['rivid'][:]
+    data = {
+        'return_2': rp_ncfile.variables['return_period_2'][:],
+        'return_10': rp_ncfile.variables['return_period_10'][:],
+        'return_20': rp_ncfile.variables['return_period_20'][:]
+    }
+
+    #  creates dataframe
+    rp_df = pd.DataFrame(data, index=rp_comid)
 
     # creates a csv file to store statistics
     try:
@@ -98,11 +104,11 @@ def extract_summary_table(workspace):
                 for step, date, max, mean, min in zip(step_order, dates, maxlist[index], meanlist[index],
                                                       minlist[index]):
                     # define style
-                    if mean > float(d[str(comid)][2]):
+                    if mean > rp_df.loc[comid, 'return_20']:
                         style = 'purple'
-                    elif mean > float(d[str(comid)][1]):
+                    elif mean > rp_df[comid, 'return_10']:
                         style = 'red'
-                    elif mean > float(d[str(comid)][0]):
+                    elif mean > rp_df[comid, 'return_2']:
                         style = 'yellow'
                     else:
                         style = 'blue'
