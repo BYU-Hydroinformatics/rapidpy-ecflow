@@ -5,7 +5,7 @@ suite run_rapid
   edit ECF_HOME '/home/michael/host_share/rapid_run/ecflow'
   task prep_task
     edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow/iprep_ecf.py'
-    edit IO_LOCATION '/home/michael/host_share/rapid-io_init'
+    edit IO_LOCATION '/home/michael/host_share/japan-io'
     edit RUNOFF_LOCATION '/home/michael/host_share/ecmwf'
   family ensemble_family
     trigger prep_task == complete
@@ -172,7 +172,7 @@ suite run_rapid
   task plain_table_task
     trigger ensemble_family == complete
     edit PYSCRIPT '/home/michael/host_share/rapid_run/ecflow/spt_extract_plain_table.py'
-    edit OUT_LOCATION '/home/michael/host_share/rapid-io_init/output'
+    edit OUT_LOCATION '/home/michael/host_share/japan-io/output'
     edit LOG_FILE '/home/michael/host_share/rapid_run/ecflow/run_rapid/ecf_out/plain_table.log'
     edit NCES_EXEC '/home/michael/miniconda3/envs/ecflow/bin/nces'
 endsuite

@@ -12,6 +12,7 @@
 #################################################################
 
 import os
+from glob import glob
 import sys
 import multiprocessing as mp
 import subprocess as sp
@@ -43,7 +44,8 @@ def extract_summary_table(workspace):
     file_name = 'summary_table_{0}_{1}.csv'.format(full_name, date_string)
 
     # creating pandas dataframe with return periods
-    rp_path = os.path.join(os.path.split(workspace)[0], 'return_periods_erai_t511_24hr_20100101to20141231.nc')
+    era_type = str(sys.argv[4])
+    rp_path = glob(os.path.join(os.path.split(workspace)[0], f'return_periods_{era_type}*.nc'))[0]
     rp_ncfile = nc.Dataset(rp_path, 'r')
 
     # extract values

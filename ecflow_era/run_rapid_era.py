@@ -15,8 +15,8 @@ suite.add_variable("ECF_HOME", home)
 prep_task = suite.add_task('era_task')
 prep_task.add_variable("PYSCRIPT", os.path.join(home, 'run_lsm.py'))
 prep_task.add_variable("RAPID_EXEC", '/home/michael/rapid/run/rapid')
-prep_task.add_variable("IO_LOCATION", "/home/michael/host_share/rapid-io_init")
-prep_task.add_variable("ERA_LOCATION", "/home/michael/host_share/era_data")
+prep_task.add_variable("IO_LOCATION", "/home/michael/host_share/japan-io")
+prep_task.add_variable("ERA_LOCATION", "/home/michael/host_share/era5_data/era5_runoff_2001to2015")
 
 print(defs)
 

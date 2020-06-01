@@ -37,7 +37,7 @@ suite.add_variable("ECF_HOME", home)
 
 prep_task = suite.add_task('prep_task')
 prep_task.add_variable("PYSCRIPT", os.path.join(home, 'iprep_ecf.py'))
-prep_task.add_variable("IO_LOCATION", "/home/michael/host_share/rapid-io_init")
+prep_task.add_variable("IO_LOCATION", "/home/michael/host_share/japan-io")
 prep_task.add_variable("RUNOFF_LOCATION", "/home/michael/host_share/ecmwf")
 
 suite += create_ensemble_family()
@@ -45,7 +45,7 @@ suite += create_ensemble_family()
 plain_table_task = suite.add_task('plain_table_task')
 plain_table_task.add_trigger("ensemble_family == complete")
 plain_table_task.add_variable("PYSCRIPT", os.path.join(home, 'spt_extract_plain_table.py'))
-plain_table_task.add_variable("OUT_LOCATION", "/home/michael/host_share/rapid-io_init/output")
+plain_table_task.add_variable("OUT_LOCATION", "/home/michael/host_share/japan-io/output")
 plain_table_task.add_variable("LOG_FILE", os.path.join(home, 'run_rapid/ecf_out/plain_table.log'))
 plain_table_task.add_variable("NCES_EXEC", "/home/michael/miniconda3/envs/ecflow/bin/nces")
 
