@@ -20,8 +20,8 @@ def create_ensemble_family():
     ensemble_family += [Task(f"ens_member_52").add_variable("JOB_INDEX", 0)]
     ensemble_family += [
         Task(f"ens_member_{j}")
-        .add_variable("JOB_INDEX", 52 - j)
-        .add_trigger(f"ens_member_{j + 1} == complete") for j in reversed(range(1, 52))
+        .add_variable("JOB_INDEX", 52 - j) for j in reversed(range(1, 52))
+        # .add_trigger(f"ens_member_{j + 1} == complete") for j in reversed(range(1, 52))
     ]
     return ensemble_family
 
@@ -48,6 +48,14 @@ plain_table_task.add_variable("PYSCRIPT", os.path.join(home, 'spt_extract_plain_
 plain_table_task.add_variable("OUT_LOCATION", "/home/michael/host_share/japan-io/output")
 plain_table_task.add_variable("LOG_FILE", os.path.join(home, 'run_rapid/ecf_out/plain_table.log'))
 plain_table_task.add_variable("NCES_EXEC", "/home/michael/miniconda3/envs/ecflow/bin/nces")
+
+store_day_one = suite.add_task('store_day_one')
+store_day_one.add_trigger("ensemble_family == complete")
+store_day_one.add_variable("PYSCRIPT", os.path.join(home, 'day_one_forecast.py'))
+store_day_one.add_variable("IO_LOCATION", "/home/michael/host_share/japan-io")
+store_day_one.add_variable("ERA_LOCATION", "/home/michael/host_share/era5_data/era5_runoff_2001to2015")
+store_day_one.add_variable("FORECAST_RECORDS_DIR", "/home/michael/host_share/japan-io")
+store_day_one.add_variable("LOG_DIR", os.path.join(home, 'run_rapid/ecf_out'))
 
 print(defs)
 
