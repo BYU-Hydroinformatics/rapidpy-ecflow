@@ -49,7 +49,7 @@ plain_table_task.add_variable("OUT_LOCATION", "/home/michael/host_share/japan-io
 plain_table_task.add_variable("LOG_FILE", os.path.join(home, 'run_rapid/ecf_out/plain_table.log'))
 plain_table_task.add_variable("NCES_EXEC", "/home/michael/miniconda3/envs/ecflow/bin/nces")
 
-store_day_one = suite.add_task('store_day_one')
+store_day_one = suite.add_task('day_one_forecast')
 store_day_one.add_trigger("ensemble_family == complete")
 store_day_one.add_variable("PYSCRIPT", os.path.join(home, 'day_one_forecast.py'))
 store_day_one.add_variable("IO_LOCATION", "/home/michael/host_share/japan-io")
