@@ -1,8 +1,9 @@
 #!/usr/bin/python3.6m
 import ecflow
 
+host_port = "ecgate:18753"  # "localhost:2500"
 try:
-    ci = ecflow.Client("localhost:2500")
+    ci = ecflow.Client(host_port)
     ci.ping() 
 
 except RuntimeError as e:
@@ -10,7 +11,7 @@ except RuntimeError as e:
 
 try:
     print("Loading definition in 'run_rapid.def' into the server")
-    ci = ecflow.Client("localhost:2500")
+    ci = ecflow.Client(host_port)
 
     ci.sync_local()   # get the defs from the server, and place on ci
     defs = ci.get_defs() # retrieve the defs from ci
