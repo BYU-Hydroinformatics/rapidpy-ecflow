@@ -45,7 +45,7 @@ def extract_summary_table(workspace):
 
     # creating pandas dataframe with return periods
     era_type = str(sys.argv[4])
-    rp_path = glob(os.path.join(os.path.split(workspace)[0], f'return_periods_{era_type}*.nc'))[0]
+    rp_path = glob(os.path.join(os.path.split(workspace)[0], f'*return_periods_{era_type}*.nc*'))[0]
     rp_ncfile = nc.Dataset(rp_path, 'r')
 
     # extract values
@@ -53,7 +53,7 @@ def extract_summary_table(workspace):
     data = {
         'return_2': rp_ncfile.variables['return_period_2'][:],
         'return_10': rp_ncfile.variables['return_period_10'][:],
-        'return_20': rp_ncfile.variables['return_period_20'][:]
+        'return_50': rp_ncfile.variables['return_period_50'][:]
     }
 
     #  creates dataframe
@@ -91,7 +91,7 @@ def extract_summary_table(workspace):
             for index, comid in enumerate(comids):
                 for f_date, f_max, f_mean in zip(dates, maxlist[index], meanlist[index]):
                     # define reach color based on return periods
-                    if f_mean > rp_df.loc[comid, 'return_20']:
+                    if f_mean > rp_df.loc[comid, 'return_50']:
                         color = 'purple'
                     elif f_mean > rp_df.loc[comid, 'return_10']:
                         color = 'red'
