@@ -23,6 +23,10 @@ class CaptureStdOutToLog(object):
     def __enter__(self):
         self._stdout = sys.stdout
         self._stderr = sys.stderr
+        try:
+            os.makedirs(os.path.dirname(self.log_file_path))
+        except OSError:
+            pass
         sys.stdout = open(self.log_file_path, 'w')
         sys.stderr = open(self.error_file_path, 'w')
         return self
@@ -33,50 +37,51 @@ class CaptureStdOutToLog(object):
         sys.stderr = self._stderr
         
         
-with open(os.path.join(str(sys.argv[1]), 'ecf_out', 'rapid_run.txt'), 'r') as f:
+with open(os.path.join(str(sys.argv[1]), 'rapid_run.txt'), 'r') as f:
     lines = f.readlines()
-    params = lines[int(sys.argv[2])].split(',')
-    
-    ecmwf_forecast = params[0]
-    forecast_date_timestep = params[1]
-    watershed = params[2]
-    subbasin = params[3]
-    rapid_executable_location = str(sys.argv[3])
-    initialize_flows = params[4]
-    job_name = params[5]
-    master_rapid_outflow_file = params[6]
-    rapid_input_directory = params[7]
-    mp_execute_directory = str(sys.argv[4])
-    subprocess_forecast_log_dir = str(sys.argv[5])
-    watershed_job_index = int(params[8].replace('\n', ''))
+    for line in lines:
+        params = line.split(',')
+        if int(params[8].replace('\n', '')) == int(sys.argv[2]):
+            ecmwf_forecast = params[0]
+            forecast_date_timestep = params[1]
+            watershed = params[2]
+            subbasin = params[3]
+            rapid_executable_location = str(sys.argv[3])
+            initialize_flows = params[4]
+            job_name = params[5]
+            master_rapid_outflow_file = params[6]
+            rapid_input_directory = params[7]
+            mp_execute_directory = str(sys.argv[4])
+            subprocess_forecast_log_dir = str(sys.argv[5])
+            watershed_job_index = int(params[8].replace('\n', ''))
 
-    with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
-        execute_directory = os.path.join(mp_execute_directory, job_name)
-        try:
-            os.mkdir(execute_directory)
-        except OSError:
-            pass
+            with CaptureStdOutToLog(os.path.join(subprocess_forecast_log_dir, "{0}.log".format(job_name))):
+                execute_directory = os.path.join(mp_execute_directory, job_name)
+                try:
+                    os.mkdir(execute_directory)
+                except OSError:
+                    pass
         
-        try:
-            os.makedirs(os.path.dirname(master_rapid_outflow_file))
-        except OSError:
-            pass
+                try:
+                    os.makedirs(os.path.dirname(master_rapid_outflow_file))
+                except OSError:
+                    pass
         
-        ecmwf_rapid_multiprocess_worker(
-            execute_directory,
-            rapid_input_directory,
-            ecmwf_forecast,
-            forecast_date_timestep,
-            watershed,
-            subbasin,
-            rapid_executable_location,
-            initialize_flows,
-        )
+                ecmwf_rapid_multiprocess_worker(
+                    execute_directory,
+                    rapid_input_directory,
+                    ecmwf_forecast,
+                    forecast_date_timestep,
+                    watershed,
+                    subbasin,
+                    rapid_executable_location,
+                    initialize_flows,
+                )
         
-        node_rapid_outflow_file = os.path.join(
-            execute_directory,
-            os.path.basename(master_rapid_outflow_file)
-        )
+                node_rapid_outflow_file = os.path.join(
+                    execute_directory,
+                    os.path.basename(master_rapid_outflow_file)
+                )
         
-        move(node_rapid_outflow_file, master_rapid_outflow_file)
-        rmtree(execute_directory)
+                move(node_rapid_outflow_file, master_rapid_outflow_file)
+                rmtree(execute_directory)

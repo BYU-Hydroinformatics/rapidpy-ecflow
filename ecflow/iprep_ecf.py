@@ -4,15 +4,21 @@ import sys
 import os
 import re
 from glob import glob
+import datetime
+import logging as log
+
+log.basicConfig(
+    format="%(asctime)s - %(levelname)s - %(message)s", level=log.INFO)
+
 
 
 def get_date_timestep_from_forecast_folder(forecast_folder):
     """
     Gets the datetimestep from forecast
     """
-    forecast_split = os.path.basename(forecast_folder).split(".")
-    forecast_date_timestep = ".".join(forecast_split[1:3])
-    return re.sub("[^\d.]+", "", forecast_date_timestep)
+    forecast_date_timestep = os.path.basename(forecast_folder)
+    log.info(f'Forecast timestep {forecast_date_timestep}')
+    return datetime.datetime.strptime(forecast_date_timestep[:11],"%Y%m%d%H").strftime("%Y%m%d.%H")
 
 
 def get_valid_watershed_list(input_directory):
@@ -62,8 +68,7 @@ def ecmwf_rapid_process(rapid_io_files_location="",
             os.path.join(rapid_io_files_location, "input"))
         
     # get list of folders to run
-    ecmwf_folders = sorted(glob(os.path.join(ecmwf_forecast_location,
-                                'Runoff.' + date_string + '*.netcdf')))
+    ecmwf_folders = sorted(glob(ecmwf_forecast_location))
     
     master_job_list = []
     
@@ -80,6 +85,8 @@ def ecmwf_rapid_process(rapid_io_files_location="",
         # submit jobs to downsize ecmwf files to watershed
         rapid_watershed_jobs = {}
         for rapid_input_directory in rapid_input_directories:
+
+            log.info(f'Adding rapid input folder {rapid_input_directory}')
             # keep list of jobs
             rapid_watershed_jobs[rapid_input_directory] = {
                 'jobs': []
@@ -134,10 +141,10 @@ def ecmwf_rapid_process(rapid_io_files_location="",
                         watershed_job_index
                 ))
                                 
-        master_job_list += rapid_watershed_jobs[rapid_input_directory]['jobs']
+            master_job_list += rapid_watershed_jobs[rapid_input_directory]['jobs']
     
 #    print(master_job_list)
-    with open(os.path.join(str(sys.argv[3]), 'ecf_out', 'rapid_run.txt'), 'w') as f:
+    with open(os.path.join(str(sys.argv[3]), 'rapid_run.txt'), 'w') as f:
         for line in master_job_list:
             formatted_line = ','.join(map(str, line))
             f.write(f"{formatted_line}\n")
