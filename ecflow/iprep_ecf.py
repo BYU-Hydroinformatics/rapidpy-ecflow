@@ -2,14 +2,15 @@
 
 import sys
 import os
-import re
 from glob import glob
 import datetime
 import logging as log
 
+from spt_compute.imports.helper_functions import find_current_rapid_output
+from spt_compute.imports.streamflow_assimilation import compute_initial_rapid_flows
+
 log.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=log.INFO)
-
 
 
 def get_date_timestep_from_forecast_folder(forecast_folder):
@@ -142,6 +143,26 @@ def ecmwf_rapid_process(rapid_io_files_location="",
                 ))
                                 
             master_job_list += rapid_watershed_jobs[rapid_input_directory]['jobs']
+
+            # initialize flows for next run
+            input_directory = os.path.join(rapid_io_files_location,
+                                           'input',
+                                           rapid_input_directory)
+
+            forecast_directory = os.path.join(rapid_io_files_location,
+                                              'output',
+                                              rapid_input_directory,
+                                              forecast_date_timestep)
+
+            if os.path.exists(forecast_directory):
+                watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
+                basin_files = find_current_rapid_output(forecast_directory, watershed, subbasin)
+                try:
+                    compute_initial_rapid_flows(basin_files, input_directory, forecast_date_timestep)
+                except Exception as ex:
+                    print(ex)
+                    pass
+
     
 #    print(master_job_list)
     with open(os.path.join(str(sys.argv[3]), 'rapid_run.txt'), 'w') as f:
