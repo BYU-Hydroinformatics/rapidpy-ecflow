@@ -11,6 +11,9 @@ import os
 from shutil import move, rmtree
 
 from spt_compute.imports.ecmwf_rapid_multiprocess_worker import ecmwf_rapid_multiprocess_worker
+from spt_compute.imports.helper_functions import (find_current_rapid_output, get_valid_watershed_list,
+                                                  get_watershed_subbasin_from_folder)
+from spt_compute.imports.streamflow_assimilation import compute_initial_rapid_flows
 
 
 class CaptureStdOutToLog(object):
@@ -85,3 +88,27 @@ with open(os.path.join(str(sys.argv[1]), 'rapid_run.txt'), 'r') as f:
         
                 move(node_rapid_outflow_file, master_rapid_outflow_file)
                 rmtree(execute_directory)
+
+    # get list of correclty formatted rapid input directories in rapid directory
+    rapid_io_files_location = lines[0].split(',')[7].split('/input')[0]
+    rapid_input_directories = get_valid_watershed_list(os.path.join(rapid_io_files_location, "input"))
+
+    for rapid_input_directory in rapid_input_directories:
+        # initialize flows for next run
+        input_directory = os.path.join(rapid_io_files_location,
+                                       'input',
+                                       rapid_input_directory)
+
+        forecast_directory = os.path.join(rapid_io_files_location,
+                                          'output',
+                                          rapid_input_directory,
+                                          forecast_date_timestep)
+
+        if os.path.exists(forecast_directory):
+            watershed, subbasin = get_watershed_subbasin_from_folder(rapid_input_directory)
+            basin_files = find_current_rapid_output(forecast_directory, watershed, subbasin)
+            try:
+                compute_initial_rapid_flows(basin_files, input_directory, forecast_date_timestep)
+            except Exception as ex:
+                print(ex)
+                pass
