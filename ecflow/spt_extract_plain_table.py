@@ -122,19 +122,19 @@ def extract_summary_table(workspace):
 
                     # define return period exceeded by the mean forecast
                     if f_mean > rp_df.loc[comid, 'return_100']:
-                        ret_per = 100
+                        ret_per = '100'
                     elif f_mean > rp_df.loc[comid, 'return_50']:
-                        ret_per = 50
+                        ret_per = '50'
                     elif f_mean > rp_df.loc[comid, 'return_25']:
-                        ret_per = 25
+                        ret_per = '25'
                     elif f_mean > rp_df.loc[comid, 'return_10']:
-                        ret_per = 10
+                        ret_per = '10'
                     elif f_mean > rp_df.loc[comid, 'return_5']:
-                        ret_per = 5
+                        ret_per = '5'
                     elif f_mean > rp_df.loc[comid, 'return_2']:
-                        ret_per = 2
+                        ret_per = '2'
                     else:
-                        ret_per = 0
+                        ret_per = '0'
 
                     f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
 
