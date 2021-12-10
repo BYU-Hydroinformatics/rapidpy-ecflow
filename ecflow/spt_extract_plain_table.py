@@ -11,16 +11,17 @@
 #
 #################################################################
 
-import os
-from glob import glob
-import sys
-import multiprocessing as mp
-import subprocess as sp
-import netCDF4 as nc
 import datetime as dt
-from scipy.interpolate import pchip
-import pandas as pd
 import logging
+import multiprocessing as mp
+import os
+import subprocess as sp
+import sys
+from glob import glob
+
+import netCDF4 as nc
+import pandas as pd
+from scipy.interpolate import pchip
 
 
 def extract_summary_table(workspace):
@@ -48,7 +49,8 @@ def extract_summary_table(workspace):
     # creating pandas dataframe with return periods
     era_type = str(sys.argv[4])
     logging.info(f'Workspace {workspace}')
-    rp_path = glob(os.path.join(static_path, era_type, os.path.basename(os.path.split(workspace)[0]), f'*return_periods_{era_type}*.nc*'))[0]
+    rp_path = glob(os.path.join(static_path, era_type, os.path.basename(os.path.split(workspace)[0]),
+                                f'*return_periods_{era_type}*.nc*'))[0]
     logging.info(f'Return Period Path {rp_path}')
     rp_ncfile = nc.Dataset(rp_path, 'r')
 
@@ -78,7 +80,8 @@ def extract_summary_table(workspace):
             dates = []
             for date in rawdates:
                 dates.append(dt.datetime.utcfromtimestamp(date).strftime("%m/%d/%y %H:%M"))
-            # creates a time series of 3H intervals for interpolation, coerces a copy to appropriate type for inserting to file
+            # creates a time series of 3H intervals for interpolation,
+            # coerces a copy to appropriate type for inserting to file
             interp_x = pd.date_range(
                 start=dates[0],
                 end=dates[-1],
@@ -105,7 +108,7 @@ def extract_summary_table(workspace):
                         maxlist.append(res.variables['Qout'][index, :].tolist())
                     elif 'avg' in ncfile:
                         meanlist.append(res.variables['Qout'][index, :].tolist())
-            #loops through the lists of max lists and mean lists to interpolate using the dates as x values
+            # loops through the lists of max lists and mean lists to interpolate using the dates as x values
             for index, maxes, means in enumerate(zip(maxlist, meanlist)):
                 max_interpolator = pchip(dt_dates, maxes)
                 mean_interpolator = pchip(dt_dates, means)
@@ -113,8 +116,6 @@ def extract_summary_table(workspace):
                 int_mean = mean_interpolator(interp_x)
                 maxlist[index] = int_max
                 meanlist[index] = int_mean
-
-
 
             # loops through COMIDs again to add rows to csv file
             for index, comid in enumerate(comids):
