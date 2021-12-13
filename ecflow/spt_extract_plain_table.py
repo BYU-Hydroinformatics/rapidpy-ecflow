@@ -42,18 +42,24 @@ def extract_summary_table(workspace):
     date_string = os.path.split(workspace)[1].replace('.', '')
     full_name = os.path.split(os.path.split(workspace)[0])[1]
     file_name = 'summary_table_{0}_{1}.csv'.format(full_name, date_string)
+    static_path = str(sys.argv[5])
 
     # creating pandas dataframe with return periods
     era_type = str(sys.argv[4])
-    rp_path = glob(os.path.join(os.path.split(workspace)[0], f'return_periods_{era_type}*.nc'))[0]
+    logging.info(f'Workspace {workspace}')
+    rp_path = glob(os.path.join(static_path, era_type, os.path.basename(os.path.split(workspace)[0]), f'*return_periods_{era_type}*.nc*'))[0]
+    logging.info(f'Return Period Path {rp_path}')
     rp_ncfile = nc.Dataset(rp_path, 'r')
 
     # extract values
     rp_comid = rp_ncfile.variables['rivid'][:]
     data = {
         'return_2': rp_ncfile.variables['return_period_2'][:],
+        'return_5': rp_ncfile.variables['return_period_5'][:],
         'return_10': rp_ncfile.variables['return_period_10'][:],
-        'return_20': rp_ncfile.variables['return_period_20'][:]
+        'return_25': rp_ncfile.variables['return_period_25'][:],
+        'return_50': rp_ncfile.variables['return_period_50'][:],
+        'return_100': rp_ncfile.variables['return_period_100'][:]
     }
 
     #  creates dataframe
@@ -63,7 +69,7 @@ def extract_summary_table(workspace):
     try:
         with open(os.path.join(workspace, file_name), 'w') as f:
             # writes header
-            # f.write('comid,timestamp,max,mean,color,thickness\n')
+            # f.write('comid,timestamp,max,mean,color,thickness,ret_per\n')
 
             # extracts forecast COMIDS and formatted dates into lists
             comids = nc.Dataset(nclist[0], 'r').variables['rivid'][:].tolist()
@@ -91,7 +97,7 @@ def extract_summary_table(workspace):
             for index, comid in enumerate(comids):
                 for f_date, f_max, f_mean in zip(dates, maxlist[index], meanlist[index]):
                     # define reach color based on return periods
-                    if f_mean > rp_df.loc[comid, 'return_20']:
+                    if f_mean > rp_df.loc[comid, 'return_50']:
                         color = 'purple'
                     elif f_mean > rp_df.loc[comid, 'return_10']:
                         color = 'red'
@@ -114,7 +120,23 @@ def extract_summary_table(workspace):
                     else:
                         thickness = '6'
 
-                    f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness + '\n']))
+                    # define return period exceeded by the mean forecast
+                    if f_mean > rp_df.loc[comid, 'return_100']:
+                        ret_per = '100'
+                    elif f_mean > rp_df.loc[comid, 'return_50']:
+                        ret_per = '50'
+                    elif f_mean > rp_df.loc[comid, 'return_25']:
+                        ret_per = '25'
+                    elif f_mean > rp_df.loc[comid, 'return_10']:
+                        ret_per = '10'
+                    elif f_mean > rp_df.loc[comid, 'return_5']:
+                        ret_per = '5'
+                    elif f_mean > rp_df.loc[comid, 'return_2']:
+                        ret_per = '2'
+                    else:
+                        ret_per = '0'
+
+                    f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
 
         return 'Stat Success'
     except Exception as e:
@@ -123,12 +145,16 @@ def extract_summary_table(workspace):
 
 # runs function on file execution
 if __name__ == "__main__":
+
+    #logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
+
     # output directory
     workdir = str(sys.argv[1])
 
     # list of watersheds
     watersheds = [os.path.join(workdir, d) for d in os.listdir(workdir) if os.path.isdir(os.path.join(workdir, d))]
-
+    logging.debug(watersheds)
     dates = []
     exclude_list = []
     for i in range(len(watersheds)):
@@ -136,9 +162,8 @@ if __name__ == "__main__":
             if not any(excluded in watersheds[i] for excluded in exclude_list) and os.path.isdir(
                     os.path.join(watersheds[i], d)):
                 dates.append(os.path.join(watersheds[i], d))
-
-    logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
-
+                logging.info(os.path.join(watersheds[i], d))
+    logging.debug(dates)
     pool = mp.Pool()
     results = pool.map(extract_summary_table, dates)
 
