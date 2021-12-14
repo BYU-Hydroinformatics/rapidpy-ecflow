@@ -171,21 +171,23 @@ def extract_summary_table(workspace):
 # runs function on file execution
 if __name__ == "__main__":
     """
-        Arguments:
+    Arguments:
 
-        1. Absolute path to the rapid-io/output directory ???
-        2. Path to the logging file (not used)
-        3. NCO command to compute ensemble stats ???
-        4. era_type: == 'era_5' ???
-        5. static_path === absolute path to the historical simulation data?
+    1. Absolute path to the rapid-io/output directory ???
+    2. Path to the logging file (not used)
+    3. NCO command to compute ensemble stats ???
+    4. era_type: == 'era_5' ???
+    5. static_path == absolute path to the root directory with all
+        return period files. The next level after this directory
+        should be the different era types.
 
-        Example Usage
+    Example Usage
 
-            python spt_extract_plain_table.py arg1 arg2 arg3 arg4 arg5
+        python spt_extract_plain_table.py arg1 arg2 arg3 arg4 arg5
 
-            python spt_extract_plain_table.py /path/to/rapid-io/output
+        python spt_extract_plain_table.py /path/to/rapid-io/output blank blank era_5 /path/to/returnperiods/root
 
-        """
+    """
 
     logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
     logging.basicConfig(level=logging.DEBUG)
