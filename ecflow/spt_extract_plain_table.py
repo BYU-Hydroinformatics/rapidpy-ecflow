@@ -119,8 +119,8 @@ def extract_summary_table(workspace):
                 mean_interpolator = pchip(dt_dates, means)
                 int_max = max_interpolator(interp_x)
                 int_mean = mean_interpolator(interp_x)
-                maxlist[index] = int_max
-                meanlist[index] = int_mean
+                maxlist[index] = int_max.round(2)
+                meanlist[index] = int_mean.round(2)
 
             # loops through COMIDs again to add rows to csv file
             for index, comid in enumerate(comids):
