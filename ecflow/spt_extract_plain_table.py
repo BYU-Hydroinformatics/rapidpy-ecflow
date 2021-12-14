@@ -1,7 +1,12 @@
 #################################################################
 #
 # File: spt_extract_plain_table.py
-# Author(s): Michael Souffront, Wade Roberts, Spencer McDonald
+# Author(s):
+#   Michael Souffront,
+#   Wade Roberts,
+#   Spencer McDonald,
+#   Josh Ogden,
+#   Riley Hales
 # Date: 03/07/2018
 # Last Updated: 05/28/2020
 # Purpose: Calculate basic statistics for GloFAS-RAPID files and
