@@ -1,0 +1,3 @@
+%include <head.h>
+/home/mo/moms/python_packages/miniconda3/envs/py36/bin/python3 %PYSCRIPT% %IO_LOCATION% %ERA_LOCATION% %FORECAST_RECORDS_DIR% %LOG_DIR%
+%include <tail.h>

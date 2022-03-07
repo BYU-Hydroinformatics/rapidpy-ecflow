@@ -165,7 +165,6 @@ def extract_summary_table(workspace):
                     else:
                         ret_per = '0'
                 f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
-        f.close()
         return 'Stat Success'
     except Exception as e:
         f.close()
@@ -195,7 +194,6 @@ if __name__ == "__main__":
     """
 
     logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG)
 
     # output directory
     workdir = str(sys.argv[1])
@@ -210,6 +208,7 @@ if __name__ == "__main__":
                     os.path.join(watersheds[i], d)):
                 dates.append(os.path.join(watersheds[i], d))
                 # logging.info(os.path.join(watersheds[i], d))
+
     logging.debug(dates)
     pool = mp.Pool()
     results = pool.map(extract_summary_table, dates)

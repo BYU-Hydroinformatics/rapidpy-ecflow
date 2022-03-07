@@ -1,3 +1,3 @@
 %include <head.h>
-/usr/bin/python3.6 %PYSCRIPT% %ECF_FILES% %JOB_INDEX% %RAPID_EXEC% %EXEC_DIR% %SUBPROCESS_DIR%
+/home/mo/moms/python_packages/miniconda3/envs/py36/bin/python3 %PYSCRIPT% %ECF_FILES% %JOB_INDEX% %RAPID_EXEC% %EXEC_DIR% %SUBPROCESS_DIR%
 %include <tail.h>
