@@ -1,7 +1,12 @@
 #################################################################
 #
 # File: spt_extract_plain_table.py
-# Author(s): Michael Souffront, Wade Roberts, Spencer McDonald
+# Author(s):
+#   Michael Souffront,
+#   Wade Roberts,
+#   Spencer McDonald,
+#   Josh Ogden,
+#   Riley Hales
 # Date: 03/07/2018
 # Last Updated: 05/28/2020
 # Purpose: Calculate basic statistics for GloFAS-RAPID files and
@@ -11,15 +16,17 @@
 #
 #################################################################
 
-import os
-from glob import glob
-import sys
-import multiprocessing as mp
-import subprocess as sp
-import netCDF4 as nc
 import datetime as dt
-import pandas as pd
 import logging
+import multiprocessing as mp
+import os
+import subprocess as sp
+import sys
+from glob import glob
+
+import netCDF4 as nc
+import pandas as pd
+from scipy.interpolate import pchip
 
 
 def extract_summary_table(workspace):
@@ -47,7 +54,8 @@ def extract_summary_table(workspace):
     # creating pandas dataframe with return periods
     era_type = str(sys.argv[4])
     logging.info(f'Workspace {workspace}')
-    rp_path = glob(os.path.join(static_path, era_type, os.path.basename(os.path.split(workspace)[0]), f'*return_periods_{era_type}*.nc*'))[0]
+    rp_path = glob(os.path.join(static_path, era_type, os.path.basename(os.path.split(workspace)[0]),
+                                f'*return_periods_{era_type}*.nc*'))[0]
     logging.info(f'Return Period Path {rp_path}')
     rp_ncfile = nc.Dataset(rp_path, 'r')
 
@@ -77,6 +85,16 @@ def extract_summary_table(workspace):
             dates = []
             for date in rawdates:
                 dates.append(dt.datetime.utcfromtimestamp(date).strftime("%m/%d/%y %H:%M"))
+            # creates a time series of 3H intervals for interpolation,
+            # coerces a copy to appropriate type for inserting to file
+            interp_x = pd.date_range(
+                start=dates[0],
+                end=dates[-1],
+                freq='3H'
+            )
+            interp_x_strings = interp_x.strftime("%m/%d/%y %H:%M")
+            new_dates = list(interp_x_strings)
+            dt_dates = pd.to_datetime(dates)
 
             # creates empty lists with forecast stats
             maxlist = []
@@ -86,16 +104,27 @@ def extract_summary_table(workspace):
             for ncfile in sorted(nclist):
                 res = nc.Dataset(ncfile, 'r')
 
-                # loops through COMIDs with netcdf files
+                # loops through COMIDs with netcdf files, adds maxes and means
+                # originally took a slice of the first 49 to only include high res,
+                # but now extracts the whole forecast so the interpolator can fill
+                # in the gaps.
                 for index, comid in enumerate(comids):
                     if 'max' in ncfile:
-                        maxlist.append(res.variables['Qout'][index, 0:49].tolist())
+                        maxlist.append(res.variables['Qout'][index, :].tolist())
                     elif 'avg' in ncfile:
-                        meanlist.append(res.variables['Qout'][index, 0:49].tolist())
+                        meanlist.append(res.variables['Qout'][index, :].tolist())
+            # loops through the lists of max lists and mean lists to interpolate using the dates as x values
+            for index, maxes, means in enumerate(zip(maxlist, meanlist)):
+                max_interpolator = pchip(dt_dates, maxes)
+                mean_interpolator = pchip(dt_dates, means)
+                int_max = max_interpolator(interp_x)
+                int_mean = mean_interpolator(interp_x)
+                maxlist[index] = int_max.round(2)
+                meanlist[index] = int_mean.round(2)
 
             # loops through COMIDs again to add rows to csv file
             for index, comid in enumerate(comids):
-                for f_date, f_max, f_mean in zip(dates, maxlist[index], meanlist[index]):
+                for f_date, f_max, f_mean in zip(new_dates, maxlist[index], meanlist[index]):
                     # define reach color based on return periods
                     if f_mean > rp_df.loc[comid, 'return_50']:
                         color = 'purple'
@@ -135,23 +164,39 @@ def extract_summary_table(workspace):
                         ret_per = '2'
                     else:
                         ret_per = '0'
-
-                    f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
-
+                f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
         return 'Stat Success'
     except Exception as e:
+        f.close()
         logging.debug(e)
+        print(e)
 
 
 # runs function on file execution
 if __name__ == "__main__":
+    """
+    Arguments:
 
-    #logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG)
+    1. Absolute path to the rapid-io/output directory ???
+    2. Path to the logging file (not used)
+    3. NCO command to compute ensemble stats ???
+    4. era_type: == 'era_5' ???
+    5. static_path == absolute path to the root directory with all
+        return period files. The next level after this directory
+        should be the different era types.
+
+    Example Usage
+
+        python spt_extract_plain_table.py arg1 arg2 arg3 arg4 arg5
+
+        python spt_extract_plain_table.py /path/to/rapid-io/output blank blank era_5 /path/to/returnperiods/root
+
+    """
+
+    logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
 
     # output directory
     workdir = str(sys.argv[1])
-
     # list of watersheds
     watersheds = [os.path.join(workdir, d) for d in os.listdir(workdir) if os.path.isdir(os.path.join(workdir, d))]
     logging.debug(watersheds)
@@ -162,7 +207,8 @@ if __name__ == "__main__":
             if not any(excluded in watersheds[i] for excluded in exclude_list) and os.path.isdir(
                     os.path.join(watersheds[i], d)):
                 dates.append(os.path.join(watersheds[i], d))
-                logging.info(os.path.join(watersheds[i], d))
+                # logging.info(os.path.join(watersheds[i], d))
+
     logging.debug(dates)
     pool = mp.Pool()
     results = pool.map(extract_summary_table, dates)
