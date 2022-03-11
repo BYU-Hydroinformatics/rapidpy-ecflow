@@ -164,7 +164,7 @@ def extract_summary_table(workspace):
                         ret_per = '2'
                     else:
                         ret_per = '0'
-                f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
+                    f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
         return 'Stat Success'
     except Exception as e:
         f.close()
