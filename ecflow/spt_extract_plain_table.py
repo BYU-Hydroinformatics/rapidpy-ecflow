@@ -114,7 +114,7 @@ def extract_summary_table(workspace):
                     elif 'avg' in ncfile:
                         meanlist.append(res.variables['Qout'][index, :].tolist())
             # loops through the lists of max lists and mean lists to interpolate using the dates as x values
-            for index, maxes, means in enumerate(zip(maxlist, meanlist)):
+            for index, (maxes, means) in enumerate(zip(maxlist, meanlist)):
                 max_interpolator = pchip(dt_dates, maxes)
                 mean_interpolator = pchip(dt_dates, means)
                 int_max = max_interpolator(interp_x)
@@ -164,7 +164,7 @@ def extract_summary_table(workspace):
                         ret_per = '2'
                     else:
                         ret_per = '0'
-                f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
+                    f.write(','.join([str(comid), f_date, str(f_max), str(f_mean), color, thickness, ret_per + '\n']))
         return 'Stat Success'
     except Exception as e:
         f.close()
