@@ -20,25 +20,6 @@ import xarray
 import netCDF4 as nc
 
 
-def merge_forecast_qout_files(rapidio_region_output):
-    # pick the most recent date, append to the file path
-    recent_date = sorted(os.listdir(rapidio_region_output))
-    while recent_date[-1].endswith('.csv'):
-        recent_date.remove(recent_date[-1])
-    recent_date = recent_date[-1]
-    qout_folder = os.path.join(rapidio_region_output, recent_date)
-    # list the forecast files
-    prediction_files = sorted(glob.glob(os.path.join(qout_folder, 'Qout*.nc')))
-
-    # merge them into a single file joined by ensemble number
-    ensemble_index_list = []
-    qout_datasets = []
-    for forecast_nc in prediction_files:
-        ensemble_index_list.append(int(os.path.basename(forecast_nc)[:-3].split("_")[-1]))
-        qout_datasets.append(xarray.open_dataset(forecast_nc).Qout)
-    return xarray.concat(qout_datasets, pd.Index(ensemble_index_list, name='ensemble')), qout_folder
-
-
 def check_for_return_period_flow(largeflows_df, forecasted_flows_df, stream_order, rp_data):
     max_flow = max(forecasted_flows_df['means'])
 
@@ -115,21 +96,27 @@ def postprocess_region(region, rapidio, historical_sim, forecast_records):
         'date_exceeds_return_period_5', 'date_exceeds_return_period_10', 'date_exceeds_return_period_25',
         'date_exceeds_return_period_50', 'date_exceeds_return_period_100'])
 
-    # merge the most recent forecast files into a single xarray dataset
-    logging.info('  merging forecasts')
-    merged_forecasts, qout_folder = merge_forecast_qout_files(rapidio_region_output)
+    # pick the most recent date, append to the file path
+    recent_date = sorted(os.listdir(rapidio_region_output))
+    while recent_date[-1].endswith('.csv'):
+        recent_date.remove(recent_date[-1])
+    recent_date = recent_date[-1]
+    qout_folder = os.path.join(rapidio_region_output, recent_date)
+
+    # get the summary files and put them into a list
+    avg_file = os.path.join(qout_folder, 'nces.avg.nc')
 
     # collect the times and comids from the forecasts
     logging.info('  reading info from forecasts')
-    times = pd.to_datetime(pd.Series(merged_forecasts.time))
-    comids = pd.Series(merged_forecasts.rivid)
+    avg_nc = xarray.open_dataset(avg_file, engine='netcdf4')
+    times = pd.to_datetime(pd.Series(avg_nc.time))
     tomorrow = times[0] + pd.Timedelta(days=1)
     year = times[0].strftime("%Y")
 
     # read the return period file
     logging.info('  reading return period file')
     return_period_file = os.path.join(historical_sim, region, 'gumbel_return_periods.nc')
-    return_period_data = xarray.open_dataset(return_period_file).to_dataframe()
+    return_period_data = xarray.open_dataset(return_period_file, engine='netcdf4').to_dataframe()
 
     # read the list of large streams
     logging.info('  creating dataframe of large streams')
@@ -142,9 +129,9 @@ def postprocess_region(region, rapidio, historical_sim, forecast_records):
     first_day_flows = []
 
     # now process the mean flows for each river in the region
-    for comid in comids:
+    for comid in avg_nc.rivid:
         # compute the timeseries of average flows
-        means = np.array(merged_forecasts.sel(rivid=comid)).mean(axis=0)
+        means = np.array(avg_nc.Qout.sel(rivid=comid))
         # put it in a dataframe with the times series
         forecasted_flows = times.to_frame(name='times').join(pd.Series(means, name='means')).dropna()
         # select flows in 1st day and save them to the forecast record
