@@ -204,7 +204,7 @@ if __name__ == "__main__":
         long_list_of_dt_dates = [dt_dates, ] * len(comids)
         long_list_of_interp_x = [interp_x, ] * len(comids)
 
-        comid_pool = mp.Pool(4)
+        comid_pool = mp.Pool()
         df_rows = comid_pool.map(interpolate_time_series,
                                  zip(comids, max_flow_array, mean_flow_array, long_list_of_dt_dates,
                                      long_list_of_interp_x, rp_df.values))
