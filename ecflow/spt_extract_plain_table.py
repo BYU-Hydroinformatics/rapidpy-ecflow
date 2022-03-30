@@ -27,8 +27,116 @@ import pandas as pd
 import numpy as np
 from scipy.interpolate import pchip
 
+def interpolate_time_series(arrays_obj):
+    comid, maxes, means, dt_dates, interp_x, rp_array = arrays_obj  # (1, 2, 3) or [1, 2, 3]
+    # interpolate maxes and means
+    max_interpolator = pchip(dt_dates, maxes)
+    mean_interpolator = pchip(dt_dates, means)
+    max_flows = max_interpolator(interp_x)
+    mean_flows = mean_interpolator(interp_x)
 
-def extract_summary_table(workspace):
+    # create dictionary from return period values
+    rp_dict = {}
+    for i, name in enumerate(['return_2', 'return_5', 'return_10', 'return_25', 'return_50', 'return_100']):
+        rp_dict[name] = rp_array[i]
+
+    # loop for creating color, thickness, and return period columns
+    colors = []
+    thicknesses = []
+    ret_pers = []
+
+
+    for mean_flow in mean_flows:
+        # define reach color based on return periods
+        if mean_flow > rp_dict['return_50']:
+            color = 'purple'
+        elif mean_flow > rp_dict['return_10']:
+            color = 'red'
+        elif mean_flow > rp_dict['return_2']:
+            color = 'yellow'
+        else:
+            color = 'blue'
+
+        colors.append(color)
+
+        # define reach thickness based on flow magnitude
+        if mean_flow < 20:
+            thickness = '1'
+        elif 20 <= mean_flow < 250:
+            thickness = '2'
+        elif 250 <= mean_flow < 1500:
+            thickness = '3'
+        elif 1500 <= mean_flow < 10000:
+            thickness = '4'
+        elif 10000 <= mean_flow < 30000:
+            thickness = '5'
+        else:
+            thickness = '6'
+
+        thicknesses.append(thickness)
+
+        # define return period exceeded by the mean forecast
+        if mean_flow > rp_dict['return_100']:
+            ret_per = '100'
+        elif mean_flow > rp_dict['return_50']:
+            ret_per = '50'
+        elif mean_flow > rp_dict['return_25']:
+            ret_per = '25'
+        elif mean_flow > rp_dict['return_10']:
+            ret_per = '10'
+        elif mean_flow > rp_dict['return_5']:
+            ret_per = '5'
+        elif mean_flow > rp_dict['return_2']:
+            ret_per = '2'
+        else:
+            ret_per = '0'
+
+        ret_pers.append(ret_per)
+
+    columns = ['comid', 'timestamp', 'max', 'mean', 'color', 'thickness', 'ret_per']
+    new_dates = list(interp_x)
+    return pd.DataFrame({
+        columns[0]: pd.Series([comid, ] * len(new_dates)),
+        columns[1]: pd.Series(new_dates),
+        columns[2]: pd.Series(max_flows).round(2),
+        columns[3]: pd.Series(mean_flows).round(2),
+        columns[4]: pd.Series(colors),
+        columns[5]: pd.Series(thicknesses),
+        columns[6]: pd.Series(ret_pers)
+    })
+
+
+# runs function on file execution
+if __name__ == "__main__":
+    """
+    Arguments:
+
+    1. Absolute path to the rapid-io/output directory
+        This contains a directory for each region
+        Each region directory contains a directory named for the forecast date 
+    2. Path to the logging file
+
+    3. NCO command to compute ensemble stats
+
+    4. era_type: == 'era_5'
+
+    5. static_path: absolute path to the root directory with all
+        return period files. The next level after this directory
+        should be the different era types.
+    """
+    logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
+
+    # output directory
+    workdir = str(sys.argv[1])
+
+    # list of watersheds
+    region_folders = [os.path.join(workdir, d) for d in os.listdir(workdir) if os.path.isdir(os.path.join(workdir, d))]
+
+    # list of all forecast date folders in all the region folders
+    date_folders = np.array([glob.glob(os.path.join(region_folder, '*')) for region_folder in region_folders]).flatten()
+    date_folders = [d for d in date_folders if os.path.isdir(d)]
+
     # calls NCO's nces function to calculate ensemble statistics for the max, mean, and min
     nces_exec = str(sys.argv[3])
     for stat in ['max', 'avg', 'min']:
@@ -91,108 +199,25 @@ def extract_summary_table(workspace):
         mean_flow_nc.close()
 
         # for each comid, interpolate to 3-hourly with pchip, compare to return periods to generate map styling info
-        for index, (comid, maxes, means) in enumerate(zip(comids, max_flow_array, mean_flow_array)):
-            # interpolate maxes and means
-            max_interpolator = pchip(dt_dates, maxes)
-            mean_interpolator = pchip(dt_dates, means)
-            max_flows = max_interpolator(interp_x)
-            mean_flows = mean_interpolator(interp_x)
-            # loop for creating color, thickness, and return period columns
-            colors = []
-            thicknesses = []
-            ret_pers = []
-            for mean_flow in mean_flows:
-                # define reach color based on return periods
-                if mean_flow > rp_df.loc[comid, 'return_50']:
-                    color = 'purple'
-                elif mean_flow > rp_df.loc[comid, 'return_10']:
-                    color = 'red'
-                elif mean_flow > rp_df.loc[comid, 'return_2']:
-                    color = 'yellow'
-                else:
-                    color = 'blue'
 
-                colors.append(color)
+        # create a 2d array with an iteration of the date values for each comid
+        long_list_of_dt_dates = [dt_dates, ] * len(comids)
+        long_list_of_interp_x = [interp_x, ] * len(comids)
 
-                # define reach thickness based on flow magnitude
-                if mean_flow < 20:
-                    thickness = '1'
-                elif 20 <= mean_flow < 250:
-                    thickness = '2'
-                elif 250 <= mean_flow < 1500:
-                    thickness = '3'
-                elif 1500 <= mean_flow < 10000:
-                    thickness = '4'
-                elif 10000 <= mean_flow < 30000:
-                    thickness = '5'
-                else:
-                    thickness = '6'
+        comid_pool = mp.Pool()
+        df_rows = comid_pool.map(interpolate_time_series,
+                                 zip(comids, max_flow_array, mean_flow_array, long_list_of_dt_dates,
+                                     long_list_of_interp_x, rp_df.values))
 
-                thicknesses.append(thickness)
-
-                # define return period exceeded by the mean forecast
-                if mean_flow > rp_df.loc[comid, 'return_100']:
-                    ret_per = '100'
-                elif mean_flow > rp_df.loc[comid, 'return_50']:
-                    ret_per = '50'
-                elif mean_flow > rp_df.loc[comid, 'return_25']:
-                    ret_per = '25'
-                elif mean_flow > rp_df.loc[comid, 'return_10']:
-                    ret_per = '10'
-                elif mean_flow > rp_df.loc[comid, 'return_5']:
-                    ret_per = '5'
-                elif mean_flow > rp_df.loc[comid, 'return_2']:
-                    ret_per = '2'
-                else:
-                    ret_per = '0'
-
-                ret_pers.append(ret_per)
-
-            summary_table_df = pd.concat([summary_table_df, pd.DataFrame({
-                columns[0]: pd.Series([comid, ] * len(new_dates)),
-                columns[1]: pd.Series(new_dates),
-                columns[2]: pd.Series(max_flows).round(2),
-                columns[3]: pd.Series(mean_flows).round(2),
-                columns[4]: pd.Series(colors),
-                columns[5]: pd.Series(thicknesses),
-                columns[6]: pd.Series(ret_pers)
-            })], ignore_index=True)
+        for df in df_rows:
+            summary_table_df = pd.concat([summary_table_df, df], ignore_index=True)
         # write to csv
-        summary_table_df.to_csv(os.path.join(workspace, file_name), index=False)
+        # todo: this may need to be adjusted to have the correct file names
+        summary_table_df.to_csv(os.path.join(workdir, file_name), index=False)
+        comid_pool.close()
+        comid_pool.join()
     except Exception as e:
         logging.debug(e)
-
-
-# runs function on file execution
-if __name__ == "__main__":
-    """
-    Arguments:
-
-    1. Absolute path to the rapid-io/output directory
-        This contains a directory for each region
-        Each region directory contains a directory named for the forecast date 
-    2. Path to the logging file
-
-    3. NCO command to compute ensemble stats
-
-    4. era_type: == 'era_5'
-
-    5. static_path: absolute path to the root directory with all
-        return period files. The next level after this directory
-        should be the different era types.
-    """
-    logging.basicConfig(filename=str(sys.argv[2]), level=logging.DEBUG)
-    logging.basicConfig(level=logging.DEBUG)
-
-    # output directory
-    workdir = str(sys.argv[1])
-
-    # list of watersheds
-    region_folders = [os.path.join(workdir, d) for d in os.listdir(workdir) if os.path.isdir(os.path.join(workdir, d))]
-
-    # list of all forecast date folders in all the region folders
-    date_folders = np.array([glob.glob(os.path.join(region_folder, '*')) for region_folder in region_folders]).flatten()
-    date_folders = [d for d in date_folders if os.path.isdir(d)]
 
     # map function to list of date folders
     pool = mp.Pool()
